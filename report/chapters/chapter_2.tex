@@ -1,0 +1,337 @@
+\section{Preliminaries}
+
+The use of ideal remote sensing imagery continues to be a major challenge due to atmospheric variations such as fog, clouds, and wave crests, which ultimately leads to inaccurate ship detection and an inability to identify micro vessels. \\
+
+In addition to that, SAR systems possess their own limitations, such as speckle noise, grainy visuals, and unclear ship movements, leading to considerable sea clutter and difficulty in maintaining focus on the target. In optical remote sensing imagery, ship detection is more complicated because of strong illumination of sunlight and the contrast difference between the vessel and the surrounding water which is prone to creating confusion while detecting a particulate vessel. \\
+
+The conventional method of ship tracking relies on AIS signals from vessels; however, “dark vessels” remain undetected if they deliberately disable their transponders. To prevent these problems, single-stage detectors incorporate multi-dimensional dynamic convolutions and attention mechanisms, along with signal backtracking, to acquire kinematic descriptors such as profiles of Time Frequency Domain  and Range instantaneous Doppler, aimed at addressing the blurred motion. Despite the presence of these advanced technologies, numerous research gaps remain due to the separation of temporal tracking from detection by dimension, resulting in increased computation and feature collision.\\
+
+
+\section{Review of Existing Research}
+To systematically explore the research landscape of multimodal ship detection and trajectory tracking, this review organizes existing literature into four thematic areas. It begins with optical remote sensing methods, tracing the transition from traditional approaches to deep learning architectures. It then examines SAR-based detection and how microwave sensing overcomes weather and illumination limitations. The review goes on to trajectory modeling, following its evolution from deterministic AIS-based prediction to probabilistic and physics-guided reconstruction. Finally, it reviews optical–SAR fusion strategies that combine complementary sensing modalities. 
+
+\subsection{Optical Remote Sensing-Based Ship Detection}
+Optical remote sensing has been one of the primary sources of data for marine surveillance, because of its capacity to provide high-resolution visual data over a large ocean area. It is evident from the previous studies that the detection accuracy has been improved from traditional image-processing methods to more advanced and sophisticated deep learning architectures in complex marine scenarios. \\
+
+Wang et al.~\cite{jmse9121408} systematically review this evolution and present a comprehensive analysis of the transition from a conventional four-step processing pipeline of preprocessing, region of interest extraction, feature selection, and classification to a modern deep learning based framework that is effective in visible, short-wave infrared, and thermal imaging modalities. They pointed out some significant operational issues unique to the marine environment, such as the sea-sky boundary, obstructions caused by clouds, and variations in environmental conditions. This work provided an important conceptual classification of optical marine surveillance techniques, but did not provide a coherent experimental validation of the various methods; it was mostly qualitative.
+Based on this, Matasci et al.~\cite{isprs-annals-V-3-2021-303-2021} investigated the use of deep convolutional neural networks for large-scale ship detection and identification in high-resolution space-based optical imagery. They proposed a framework to show that CNN-based architecture can be used to effectively localize a ship in a large ocean region and accurately verify the presence of the target by optimized bounding-box regression. The research validates the feasibility of the orbital ship monitoring framework, but the framework is still too complex to apply in real life scenarios. Also, it has been noticed that performance is poor in highly reflective coastal regions and in dense populated port regions.\\
+
+Considering that most satellite-based detection systems analyze each image individually, Yu et al.~\cite{s21227547} proposed a moving ship detection and tracking framework specifically for geostationary satellite imagery. Their method uses a combination of spatiotemporal frame differentiation and adaptive background subtraction to separate moving ships from fixed environmental structures. Experimental results show that the robustness of the method against dynamic cloud obstructions is increased by continuous updates of the background model. However, the relatively low spatial resolution of geostationary satellite platforms reduces its performance for sub-pixel targets and increases the risk of target loss during sudden ship movements. \\
+
+To address the challenges of classification and localization in high-resolution optical images, Jian et al.~\cite{rs15174319} proposed an improved YOLOv5-based ship detection architecture. Their framework incorporates an attention mechanism and an optimized anchor allocation strategy, so that the predicted bounding boxes better match the ship geometry. Evaluations conducted on custom remote sensing ship datasets and different versions of HRSC2016 have shown evidence of increased classification accuracy and reduced coordinate regression error. However, the reliance on horizontal bounding boxes has added unnecessary background noise to ships in rotating positions, which has also increased the rate of false detection in dense marine environments.On the other hand, as the computational cost of deep learning models continues to increase, researchers are increasingly interested in lightweight architectures suitable for practical use.\\
+
+
+In this respect, Lin et al.~\cite{jmse12101786} created a compact CNN called OptiShipNet that is specially designed for maritime applications. The framework substantially decreases the computational requirements via structured channel pruning and feature map reuse approaches, and achieves competitive detection performance on various optical remote sensing benchmarks. But making the network too simple compromises the ability to retain fine geometric detail, thus degrading the performance for small ships and low-contrast targets in poor atmospheric conditions. 
+To enhance the robustness in harsh environments, Li et al.~\cite{s24030859} designed an adaptive ship detection framework based on spatial dynamic convolution and Adaptive Fusion Network (AFN). The architecture dynamically adapts the feature extraction weights based on the changes of the environment, effectively fusing the shallow spatial information and deep semantic representations. Experimental assessments indicate that the fog, haze and variable lighting conditions have been improved. However, this dynamic weighting approach introduces complexity in the inference process and the detector is still limited by the constraints of the horizontal localisation techniques.
+To address the issue of very small ship detection, another light-weight framework was proposed by Yin et al.~\cite{10379602} with the help of a high-order spatial interaction module to obtain better feature extraction. The model was able to improve TPDR of small targets using long-range pixel dependencies and contextual information, while maintaining a relatively compact architecture. The framework, however, was very susceptible to high frequency marine noise (sun glint and wave crests) that frequently caused false detections as it resembled small vessels. \\
+
+
+To address the problem of the horizontal bounding boxes, Fang et al.~\cite{jmse12040603} proposed a multi-scale detection framework (YOLO-RSA) for ship detection in any orientation. The architecture consists of a four-layer feature pyramid network, a Shuffle Attention module, and a rotated decoupled prediction head that is able to regress continuous angular representation. The experimental results on the HRSC2016 and DOTA benchmarks demonstrate that the proposed method is more effective in localising the obliquely positioned ships and background complex obstructions. But, the introduction of more attention modules and long feature extraction paths made the computational complexity very high. Complementary hydrodynamic data (such as ship wakes) were not used in the framework.
+In a similar manner, Xu et al.~\cite{xu2025robust} investigated the detection of small and orientated ships in complex marine scenarios. They achieved better localisation performance of nearby ships through the use of orientation-aware feature alignment and dense multi-scale extraction mechanisms. Experimental results indicated that the bounding-box overlap issues that are often found in port areas could be reduced effectively. The method, however, was very sensitive to precise angular annotation and its performance was degraded for low-contrast images and degraded image quality. \\
+
+
+Beyond ship hull only detection techniques, Liu et al.~\cite{Liu31122023} presented a coarse-to-fine cascaded framework, which uses both ship hull and hydrodynamic wake signatures. The method combines the panchromatic and near-infrared images of Gaofen-1 with the Phase Spectrum Fourier Transform (PFT), shape-index analysis, Gaussian Process texture verification and ensemble fuzzy classification. The framework improves the accuracy of the verification of weak ship candidates by using ship wake information as an auxiliary signal. But the performance was highly sensitive to the visibility of the active wake structure, so that stationary or slow-moving vessels were not as well served. Moreover, the multi-stage design did not allow for end-to-end optimisation.\\
+These studies have made remarkable progress in optical ship detection in terms of feature extraction, attention mechanism, lightweight architecture, orientation-based object localisation, environmental adaptation and wake-assisted verification. But challenges remain to combine small ship detection, environment robustness, clutter suppression, and temporal consistency and motion-related information into an end-to-end framework. Table ~\ref{tab:optical_review} shows an overall summary of all the optical remote sensing detections that we have studied in this research.
+
+
+\begin{table}[htbp]
+\centering
+\caption{Summary of Optical Remote Sensing Ship Detection Studies}
+\label{tab:optical_review}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|p{0.8cm}|p{3.3cm}|p{3.3cm}|p{3.2cm}|p{4.6cm}|}
+\hline
+\textbf{Ref.} & \textbf{Methodology} & \textbf{Performance} & \textbf{Dataset} & \textbf{Key Limitations} \\
+\hline
+
+~\cite{jmse9121408}     
+    & Qualitative Rule-Based Taxonomy Analysis      
+    & N/A                                                                       
+    & Synthesized literature review of historical visible, SWIR, and thermal marine satellite records. 
+    & Lacks direct empirical validation, quantitative baseline benchmarks, or a unified open-source codebase. \\
+\hline
+
+~\cite{isprs-annals-V-3-2021-303-2021} 
+    & RetinaNet + Twin Re-Identification CNN        
+    & 0.795 $F_1$-score; 76.5\% Top-10 Re-ID accuracy. 
+    & WorldView optical satellite imagery with AIS tracks. 
+    & High computational redundancy and localization degradation in reflective coastal zones. \\
+\hline
+
+~\cite{s21227547}   
+    & Spatio-Temporal Frame-Differencing + Adaptive Background Subtraction 
+    & 98.4\% tracking confirmation rate. 
+    & Geostationary optical satellite imagery. 
+    & Coarse resolution limits detection of sub-pixel ships. \\
+\hline
+
+~\cite{rs15174319}   
+    & Attention-Augmented YOLOv5 
+    & Robust $mAP$. 
+    & HRSC2016 and custom optical dataset. 
+    & Uses only horizontal bounding boxes. \\
+\hline
+
+~\cite{jmse12101786}  
+    & OptiShipNet 
+    & Reduced FLOPs while maintaining precision. 
+    & NWPU VHR-10 and AID. 
+    & Misses low-contrast vessels after aggressive pruning. \\
+\hline
+
+~\cite{s24030859}   
+    & YOLO-Vessel (ELAN-ODConv YOLOv7) 
+    & Improved detection under haze and fog. 
+    & SeaShips and shoreline surveillance imagery. 
+    & Dynamic convolutions increase inference latency. \\
+\hline
+
+~\cite{10379602}  
+    & High-Order Spatial Interaction YOLO 
+    & Strong small-vessel detection. 
+    & DOTA and DIOR. 
+    & Sensitive to sea clutter. \\
+\hline
+
+~\cite{jmse12040603}   
+    & YOLO-RSA 
+    & State-of-the-art angular regression.
+    & HRSC2016 and DOTA. 
+    & Computationally expensive. \\
+\hline
+
+~\cite{xu2025robust}  
+    & Orientation-Aware Spatial Feature Alignment Net 
+    & Strong crowded-harbor performance. 
+    & DOTA, HRSC2016, UCAS-AOD. 
+    & Requires highly accurate angle annotations. \\
+\hline
+
+~\cite{Liu31122023}   
+    & Cascaded PFT-Shape Network 
+    & High classification accuracy. 
+    & GF-1 imagery. 
+    & Depends heavily on wake visibility. \\
+\hline
+
+\end{tabular}}
+\end{table}
+
+\FloatBarrier
+
+\subsection{SAR-Based Maritime Ship Detection}
+
+Synthetic Aperture Radar (SAR) is an important sensing technology in maritime surveillance, which is capable of operating in all weather and lighting conditions. Passive optical sensors measure the reflected backscatter, while SAR emits microwave signals and measures the reflected backscatter. This allows reliable observations in cloudy conditions, fog and at night. Strong corner-reflector effects occur in the metal structure of a ship as described by Alexandre et al.~\cite{10620443} that produce specific radar signatures and enable the detection of ships against a relatively dark sea surface background.The conventional methods for ship detection in SAR have mainly depended on Constant False Alarm Rate (CFAR) algorithms and statistical thresholding methods. Although these were efficient from a computational point of view, they were prone to degradation in many sea states and cluttered coastal areas.This shift from traditional statistical approaches to deep learning-based detection systems has been thoroughly discussed by Alexandre et al.~\cite{10620443} and the inherent challenges of ocean clutter, speckle noise and scale variations have been pointed out.\\
+
+SAR ship data has been made public, which has spurred the use of deep learning technologies. Kang et al.~\cite{rs9080860} presented a Contextual Region-Based Convolutional Neural Network (Contextual R-CNN) to combine the region proposal method and hierarchical features for the detection of small-scale ships. This framework fuses the shallow texture information with the deep semantic features for good localisation performance and minimises the misidentification in a complex coastal environment. However, the two-stage architecture of the model incurs a large computational overhead which limits its real-time usage.
+To improve the efficiency, Zhang and Zhang~\cite{rs11101206} proposed an anchor-free single-stage detector, called Grid Convolutional Neural Network (G-CNN), dividing the SAR image into local grid regions. The framework can achieve much faster inference with competitive detection accuracy by substituting depthwise separable operations for traditional convolution. This efficiency is at the expense, however, of sensitivity for detection of small vessels in heavy sea-clutter conditions.
+Yasir et al.~\cite{10.3389/fmars.2022.1086140} proposed a more advanced single-stage detection method, which is an improved YOLOv5s with modified C3 modules, Feature Pyramid Networks (FPN), Path Aggregation Networks (PAN), and coordinate attention mechanisms. The performance of the datasets in offshore and inshore environments is validated by the evaluations on SSDD, AirSARShip and Gaofen-3 datasets. But the model's performance drops when it is applied to new domains of sensors.\\
+
+Other approaches such as clutter-invariant feature learning and radiometric pre-processing have been explored. Chen et al.~\cite{s25185736} introduced a Multi-cue Efficient Maritime detector (MCEM) which combines the anchor-free detection with adversarial clutter-invariant learning. This framework has been proven to be effective on HRSID and SSDD benchmarks particularly in small ship detection.
+In some instances, however, the amount of clutter suppression masked the ship's signature. In the same way, Hong et al.~\cite{app10217751} studied the impact of the radiometric representation by comparing the raw intensity images, the decibel transformed inputs and the texture enhanced maps in the multi-scale M2Det framework. They indicate that the average precision obtained by their results is significantly better than that obtained by the raw SAR intensity data, at the cost of much more complex preprocessing.\\
+
+Detection methods using real world principles have also been investigated recently. Qiang et al.~\cite{rs18081166} proposed a multimodal cascade framework, which combines YOLOv8, Convolutional Block Attention Modules (CBAM), and inverse-coordinate Doppler backtracking. This framework converts the blurred and defocused target into a Range-Instantaneous-Doppler (RID) profile, thereby converting the motional distortions into informative kinematic descriptors.During experiments, it was proven that the detection performance was greater than 95\% mAP,even during challenging maritime motion situations. The complex signal processing pipeline, however, imposed a high computational cost, restricting its use on resource-constrained platforms.\\
+
+The SAR-based ship detection research is able to overcome the limitations of optical detection in many aspects, particularly in all-weather and all-day surveillance. But annotation dependence, cross domain generalisability, computational efficiency, physical scale interpretability and deployment in heterogeneous operational environments are still open research issues. Table ~\ref{tab:sar_review} covers the overall summary of SAR-based ship detection studies.
+
+\begin{table}[htbp]
+\centering
+\caption{Summary of SAR-Based Ship Detection Studies}
+\label{tab:sar_review}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|p{0.8cm}|p{3.3cm}|p{3.3cm}|p{3.2cm}|p{4.6cm}|}
+\hline
+\textbf{Ref.} & \textbf{Methodology} & \textbf{Performance} & \textbf{Dataset} & \textbf{Key Limitations} \\
+\hline
+
+~\cite{10620443}      
+    & Comprehensive Systematic Review       
+    & Chronological performance analysis.                                               
+    & Sentinel-1, TerraSAR-X, RADARSAT-2.   
+    & No novel architecture proposed. \\
+\hline
+
+~\cite{rs9080860}      
+    & Two-Stage Contextual R-CNN            
+    & High localization accuracy.                                                       
+    & Sentinel-1 dataset.                   
+    & High computational complexity. \\
+\hline
+
+~\cite{10.3389/fmars.2022.1086140}       
+    & Improved YOLOv5s                      
+    & 95.36\% AP Offshore; 92.27\% AP Inshore.                                          
+    & SSDD, AirSARship, GF-3.               
+    & Poor cross-domain generalization. \\
+\hline
+
+~\cite{rs11101206}         
+    & Grid CNN (G-CNN)                      
+    & Ultra-low latency inference.                                                      
+    & SSDD, RadarSat-1, GF-3.               
+    & Weak small-vessel detection. \\
+\hline
+
+~\cite{s25185736}       
+    & MCEM Model                            
+    & $AP_S=45.1\%$, $AP_I=77.7\%$.                                                     
+    & HRSID and SSDD.                       
+    & Suppresses weak scattering targets. \\
+\hline
+
+~\cite{app10217751}         
+    & Multi-Scale M2Det Network             
+    & 95.55\% AP.                                                                       
+    & X-Band SAR datasets.                  
+    & Heavy preprocessing requirements. \\
+\hline
+
+~\cite{rs18081166}        
+    & Physics-Driven Multimodal Cascade Pipeline        
+    & $mAP >95\%$.                                                          
+    & Simulated and real radar scenes.                  
+    & Extremely computationally intensive. \\
+\hline
+
+\end{tabular}}
+\end{table}
+
+
+
+
+
+\subsection{Optical–SAR Fusion for Maritime Surveillance}
+In recent years, research has focused on multimodal fusion solutions that combine the all-weather capability of SAR observations with the wealth of visual information provided by optical imaging, recognizing the complementary capabilities of optical and SAR sensors.\\
+
+
+A fusion framework based on modality-specific restoration was proposed by Balnarsaiah et al. ~\cite{11187945}. In the case of optical imagery,they implemented Multi-Scale Retinex with Color Restoration (MSRCR) to enhance dim structural details.The detection method was completed by utilizing EfficientDet together with a YOLOv8 network to enhance the quality of the optical image. After experimenting on the SARScope dataset, this framework proves to provide a highly robust late fusion technique which improves the tracking precision and reduces clutter-induced false positives. However, this operation was highly dependent on the availability of high-frequency sequential satellite passes over the targeted regions, which creates computational overhead and data-throughput bottlenecks during continuous monitoring operations.
+In another research, Hong et al.~\cite{9448440} studied a single-stage multimodal detection framework, which used optimized anchor allocation and Gaussian-YOLO uncertainty modeling. To address the scale variability and clutter uncertainty, they utilized improved k-means++ clustering, multi-scale anchor distribution and probabilistic localization strategy. This method worked well on individual SAR and optical data, but it suffered from the cross domain interference when the two modalities were processed together, which affected the detection accuracy.
+A more well-rounded,furnished framework has been proposed by Ahmed et al.~\cite{s25020329}, where they introduce a decision-level dual-modal late-fusion pipeline that shows a dual-stream network for robust ship detection across  synthetic aperture radar (SAR) and optical satellite imagery. Their proposed framework combines CLAHE installed YOLOv7 for extracting optical ship features and SAR-EDT transformer for reducing SAR noise. To calculate the overlapping boundary boxes they have infused an IoU-based decision-level fusion model to pinpoint the ship's location.However, the framework remains highly sensitive to image misalignment,which may lead to a misaligned detection of moving vessels.\\
+
+
+In addition to the architectural innovations, Huang et al.~\cite{huang2021qxssaroptdatasetdeeplearning} have made important contributions to this field by proposing the QXS-SAROPT benchmark dataset. This is a big set of co-registered SAR-optical image pairs, which can be used for systematic evaluation of multimodal learning strategies. The authors show effective cross-modal matching and transfer learning with Optical-SAR Matching (OSM) pretraining, which outperforms the traditional pretraining on ImageNet. However, the absence of detailed detection annotation in this dataset makes it difficult to use it directly for fully-supervised object detection tasks.\\
+
+The studies, taken as a whole, show that multimodal fusion has a promising potential to improve the performance of maritime surveillance. Yet, there are still many challenges to be tackled in terms of efficient feature integration, domain alignment, temporal consistency, computational scalability and robustness to very different sensing conditions.Table ~\ref{tab:maritime_literature_summary} covers the overall summary of
+fusion-based detection methods.\\
+
+\begin{table}[htbp]
+\centering
+\caption{Summary of SAR–Optical Multimodal Ship Detection  Studies}
+\label{tab:maritime_literature_summary}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|p{0.8cm}|p{3.3cm}|p{2.3cm}|p{4.2cm}|p{4.6cm}|}
+\hline
+\textbf{Ref.} & \textbf{Methodology} & \textbf{Performance} & \textbf{Dataset} & \textbf{Key Limitations} \\
+\hline
+
+~\cite{9448440}
+&
+Single-stage Improved-YOLOv3 incorporating a dual-parameter Gaussian distribution layer for coordinate uncertainty, k-means++ dimension stretching, and a 4-anchor/scale layout.
+&
+95.52\% AP (SAR), 93.56\% AP (Optical).
+&
+Gaofen-3, Sentinel-1 (43,819 SAR chips), Airbus Dataset (29,070 optical chips).
+&
+Linear anchor stretching requires empirical tuning; square-grid resizing distorts elongated vessel geometries.
+\\
+\hline
+
+~\cite{huang2021qxssaroptdatasetdeeplearning}
+&
+Benchmark repository establishing domain-specific representation weights through a localized Optical-SAR Matching (OSM) pretraining paradigm.
+&
+Outperforms ImageNet pretraining in cross-modal feature learning.
+&
+QXS-SAROPT Dataset (20,000 co-registered SAR-optical image pairs).
+&
+Lacks bounding-box annotations, preventing direct use for supervised ship detection.
+\\
+\hline
+
+~\cite{s25020329}
+&
+Asymmetrical late decision-fusion pipeline combining YOLOv7+CLAHE for optical imagery and SAR-EDT transformer architecture for radar imagery.
+&
+Reduces multimodal marine clutter and improves localization through IoU-based fusion.
+&
+Co-registered optical and SAR satellite image pairs.
+&
+Decision-level fusion only; does not exploit feature-level cross-modal interactions.
+\\
+\hline
+
+~\cite{11187945}
+&
+Modality-specific enhancement using MSRCR (optical) and BM3D (SAR), followed by dual detection backbones and temporal consistency verification.
+&
+Precision 94\%, $F_1$ Score 91\%.
+&
+SARScope temporal sequence framework.
+&
+Strong dependency on frequent sequential satellite observations, increasing operational complexity.
+\\
+\hline
+
+\end{tabular}}
+\end{table}
+
+\FloatBarrier
+
+
+
+
+\subsection{Trajectory Modeling and Vessel Movement Analysis}
+Optical and SAR systems are primarily used to detect ships, but trajectory modeling is used to understand and predict the movement of ships over time. In the early research of this field, the main data source was Automatic Identification System (AIS) which assumed that ships would report their information cooperatively and consistently.\\
+Park et al.~\cite{jmse9091037} proposed a trajectory prediction framework which combines spectral clustering and Bi-LSTM. The AIS trajectories from Busan Port were first divided into route clusters according to similar behaviours, and a Bi-LSTM model was built for each cluster. In terms of Root Mean Square Error (RMSE), validating the utility of route-aware trajectory modelling, this method outperformed the GRU and traditional LSTM baselines . But this framework assumes that AIS data is available continuously, so it does not work for dark vessels that intentionally shut down the AIS transmission.\\
+In order to overcome the limitations of collaborative reporting, Mazzarella et al.~\cite{7093130} proposed a method to cross-validate the ship positions by fusing the AIS data and the SAR observations. This framework, based on Sentinel-1 imagery over the Mediterranean sea, was able to find differences between the satellite detection and the AIS reported positions, improving the Maritime Situational Awareness and identifying potential spoofing events. AIS was the main data source, while SAR was mainly used for validation.\\
+Sørensen et al.~\cite{s22052058} then worked on probabilistic trajectory prediction using Mixture Density Network (BLSTM-MDN) together with a Bidirectional LSTM.  Instead of directly predicting a specific future position, this model builds a probability-based distribution over the future position of the ship, which better captures the uncertainty of navigational decisions. Evaluation on Norwegian coastal AIS data showed that it gave better results in both uncertainty calibration and prediction performance compared to deterministic methods. However, this framework was completely data-driven and did not include any physical constraints governing the ship's movement.\\
+Kinematic constraints to a Denoising Diffusion Probabilistic Model (DDPM) was added by Zhang et al.~\cite{10.1145/3637528.3672086} to further improve physical realism. Their physics-guided discriminator penalized trajectories that violated speed and heading consistency, resulting in more realistic results in long-term AIS gap reconstruction. Experiments on Danish AIS data showed that the displacement error was significantly reduced compared to interpolation and data-driven diffusion methods alone. However, the model did not include environmental effects such as ocean current and wind conditions.\\
+Recently, Liu et al.~\cite{liu2026vista} proposed a knowledge-driven trajectory reconstruction framework VISTA based on the Ship Domain Knowledge Graph (SD-KG). Here, we incorporate ship characteristics, route constraints and port information in a structured reasoning framework. Thus, VISTA not only obtains higher reconstruction accuracy, but also produces interpretable reasoning traces for each imputation decision. However, the model considered ships independently, without any rules of interaction or collision avoidance between vessels. In general, research on trajectory modelling has been gradually moving from deterministic AIS-based prediction to a probabilistic, physics-guided, and knowledge-driven paradigm. However, challenges related to AIS reliance, environmental impact considerations, multi-vessel interaction modeling, and dark-vessel tracking remain important research issues.\\
+The studies reviewed here collectively demonstrate that data-driven approaches to vessel trajectory modelling have advanced considerably.  The sector progressed from deterministic sequence models to probabilistic and physics-informed frameworks. However, several important challenges remain. Existing methods struggle when AIS data is missing for long periods. They also do not generalize well across different traffic conditions. Most approaches treat trajectory imputation as a standalone task and ignore rules, regulations, and interactions between multiple vessels. Table~\ref{tab:trajectory_review} presents a summary of the trajectory prediction and imputation methods surveyed in this section.
+
+\begin{table}[htbp]
+\centering
+\caption{Summary of Vessel Trajectory Prediction and Imputation Studies}
+\label{tab:trajectory_review}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|p{0.8cm}|p{3.3cm}|p{3.3cm}|p{3.2cm}|p{4.6cm}|}
+\hline
+\textbf{Ref.} & \textbf{Methodology} & \textbf{Performance} & \textbf{Dataset} & \textbf{Key Limitations} \\
+\hline
+~\cite{7093130}
+    & SAR ship detection fused with AIS self-reporting data using traffic knowledge patterns
+    & Detection accuracy improved over SAR-only baseline; high AIS--SAR correlation in validation zone.
+    & TerraSAR-X SAR imagery with AIS records from the English Channel.
+    & Fusion depends on AIS availability; dark or non-reporting vessels remain undetected. \\
+\hline
+~\cite{jmse9091037}
+    & Bi-LSTM with spectral-clustered AIS data
+    & RMSE: 0.0018 (lat), 0.0019 (lon); improved over vanilla LSTM.
+    & AIS records from Busan Port, South Korea (2017--2019).
+    & Clustering is route-specific; generalisation to open-sea or multi-route scenarios untested. \\
+\hline
+~\cite{s22052058}
+    & Bidirectional LSTM with Mixture Density Network (BLSTM-MDN) for probabilistic prediction
+    & Strong calibration of multi-modal predictive distributions; outperforms deterministic LSTM baselines.
+    & AIS data from Norwegian coastal waters.
+    & Requires dense, clean AIS histories; degrades under long gap durations or heavy data loss. \\
+\hline
+~\cite{10.1145/3637528.3672086}
+    & Physics-guided Diffusion Probabilistic Model (DDPM) with trajectory embedding and physics discriminator
+    & State-of-the-art imputation on long gaps; outperforms LSTM, Transformer, and classical interpolation baselines on MAE and RMSE.
+    & Danish Maritime Authority AIS dataset (AIS-DK).
+    & High inference cost from iterative diffusion sampling; physics constraints limited to kinematic rules. \\
+\hline
+~\cite{liu2026vista}
+    & VISTA: LLM-driven trajectory imputation with ship-domain knowledge graph and COLREGS-aware reasoning
+    & Achieves interpretable, regulation-compliant imputed paths; competitive accuracy on gap reconstruction benchmarks.
+    & AIS-DK and AIS-US datasets.
+    & Relies on LLM API availability; knowledge graph construction requires curated maritime rule encoding. \\
+\hline
+\end{tabular}}
+\end{table}
+
+\FloatBarrier
+
+\section{Summary of Key Findings}From the literature surveyed, it was found that there have been considerable advances in optical sensing, SAR imaging, trajectory modeling, and multimodal fusion.  But there are some significant points yet to be completely resolved. From the optical point of view, there are still some problems to be solved in the existing methods, such as the reliable detection of small vessels, the interference of sea clutter and the correct use of temporal information in the process of atmospheric degradation. Oriented bounding boxes and wake-assisted verification localization have been slightly improved, but most of the frameworks process each image individually and cannot take advantage of the continuity of the vessel's motion. In contrast, modern deep learning architectures are much more resistant to speckle noise and clutter in the case of SAR-based detection. Current methods, however, remain significantly reliant on large labelled datasets, are not always cross-domain generalisable and do not often directly measure physically meaningful quantities like the length or width of a ship. Moreover, many of these advanced architectures are still computationally intensive and are hard to be implemented on resource constrained platforms. Trajectory modelling has evolved from deterministic to probabilistic, physics-based and knowledge-based forecasting. Most methods, however, rely heavily on AIS availability and cannot adequately capture the dark-vessel scenario, which occurs when there are no environmental influences, vessel-to-vessel interaction, and/or cooperation in reporting. Likewise, the advantages of the multimodal fusion of optical and SAR data have been demonstrated in multimodal fusion studies, but the cross-domain feature interference, the computational complexity and the absence of a unified spatial-temporal learning mechanism are still major challenges. In general, current systems conduct spatial fusion and temporal tracking independently, thus not achieving end-to-end optimization.
+

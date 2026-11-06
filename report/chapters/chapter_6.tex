@@ -1,0 +1,104 @@
+\section{Research Summary}
+
+This thesis aimed to investigate the potential of integrating complementary features from Optical and Sar imagery in order to enhance the reliability of vessel detection. Although optical imagery offers fine grained, detailed and rich features, it is susceptible to atmospheric conditions, heavy cloud cover and absence of daylight. On the other hand, Sar imagery could be observed irrespective of atmospheric conditions and daylight but its output is typically noisier and more complex to analyze. Therefore, the initial investigation began on whether it is possible to improve vessel detection when the complementary features of optical and sar are combined instead of relying on solely one imagery.\\
+
+A complete framework for vessel detection and trajectory tracking was proposed in Pre-Thesis:1.This phase of research concentrated on establishing a reliable and fair establishing setup prior to introducing any new methods.MOS ship dataset was used where both RGB and SAR tiles were registered along with a labelled file for each~\cite{you2026multi}. Five known detectors were implemented so that each could receive both sar and optical inputs through separate backbones and could combine the features in multiple levels. Each of the five models shared on base code, data split and metric calculation for a consistent comparison.To prevent data leakage between overlapping tiles, complete scenes were kept separately for selecting model check points. Each model was scored only once on an official validation set. Each models were trained separately on RGB and SAR annotations, and at testing phase individual inputs were removed to analyze the specific contributions of each modality.
+
+\section{Main Findings}
+
+\noindent\textbf{1. All models detect nearly every ship, box precision decides the ranking.}\\
+All the five models, when tested with RGB labels, achieved high mAP50 scores on the test set ranging from 0.987 to 0.995.Since, all the models performed quite similarly and scored almost  the maximum possible score, mAP50:95 as the primary metric because it provides a stricter evaluation of bounding box placement and accuracy. Under the changed primary metric, the models showed a noticeable amount of  differences. YOLO26-OBB performed the best with a score of 0.871, followed by Oriented R-CNN~\cite{xie2021oriented} score at 0.854 and OrientedFormer score at 0.840. S2A-NET~\cite{han2021align} performed poorly compared to the rest of the models with a score of 0.734. In addition to that, YOLO26-OBB was also the fastest amongst them with a speed of  24.7 FPS and it required less than half the parameters of the ResNet50 models. One of the reasons for its advantage might be partially explained by the pertaining weights developed using aerial images which includes ships as well.\\
+
+\noindent\textbf{2. Oriented boxes are essential for fair evaluation.}\\
+Although Faster R-CNN~\cite{7485869} achieves a high mAP50 of 0.987 when horizontal bounding box are evaluated with horizontal IoU, its mAP score drops significantly to 0.093 when evaluated with rotational IoU. Because a horizontal bounding box cannot accurately fit a diagonal or angularly oriented ship. Thus, oriented detectors are more suitable in this scenario.\\
+
+\noindent\textbf{3. Results depend strongly on the annotation source.}\\
+Performance of all detectors significantly reduced when trained using SAR labels. Among them YOLO26-OBB reduced to 0.578 mAP50:95 and S2A-Net~\cite{han2021align} to 0.274. The RGB and SAR bounding box for the same ship often differ in shape and size, which can be a responsible for the performance fall. Moreover, the median IoU between matched pairs resulted in only 0.458 which proves that SAR annotations are noisier, more challenging and less consistent. Therefore, this study scores cannot directly be compared with the scores of  MOS-Ship paper~\cite{you2026multi} as they follow different evaluation procedures.\\
+
+\noindent\textbf{4. Influence of input modality on detection performance.}\\
+When for a RGB-label trained model, SAR input is removed, the model encounters an unfamiliar set of input configurations. It results in the reduction of mAP50:95 by 2 to 19 points. A fairer approach test would be replacing a SAR image with a mismatched and misaligned SAR image of a different location instead of removing it to maintain the training configuration. This resulted in the reduction of performance of small vessel detection in 3 of the 5 models. This suggested that SAR imagery is more useful when properly aligned with the corresponding RGB image. Moreover, the results suggest that each model relied mostly on the image modality associated with its training labels. That is RGB-label models failed to find any ship without RGB inputs, similarly SAR-labeled models depended mostly on SAR and failed without it.\\
+
+\noindent\textbf{5. The official cloud tiles provide insufficient difficulty.}\\
+The difference between clean and cloud covered images was less than 2, which indicates that the cloud coverage was too light to block the ships in optical image or to cause optical black out. Therefore the tests run on this dataset is not enough to prove that SAR could improve detection under severe weather conditions. 
+
+\newpage
+\section{Evaluation of Research Objectives}
+Table~\ref{tab:research_objectives_status} compares the six objectives set in Pre-Thesis 1 with what this phase achieved. \\
+
+% \newlength{\tw}  % uncomment ONLY if \tw is not already defined elsewhere in your file
+
+\begin{table}[htbp]
+\centering
+\footnotesize
+\renewcommand{\arraystretch}{1.5}
+\setlength{\tabcolsep}{4pt}
+\setlength{\tw}{\dimexpr\textwidth-6\tabcolsep-4\arrayrulewidth\relax}
+
+\begin{tabular}{
+|>{\raggedright\arraybackslash}p{0.38\tw}
+|>{\centering\arraybackslash}p{0.14\tw}
+|>{\raggedright\arraybackslash}p{0.48\tw}|
+}
+\hline
+\rowcolor{gray!20}
+\textbf{Objective (Pre-Thesis 1)} &
+\textbf{Status} &
+\textbf{What was done} \\
+\hline
+
+1. Fused SAR-optical pipeline for precise vessel detection &
+Met &
+Five dual-stream detectors with feature-level fusion. All reach mAP50 above 0.98 on the test set. \\
+\hline
+
+2. AIS independent position evidence from imagery &
+Partly met &
+Ships are located from images using only oriented boxes but not linked to AIS records yet. \\
+\hline
+
+3. Multi-scale features and attention for small vessels in clutter &
+Partly met &
+All models use multi-scale features, and aligned SAR helped small ships most. No new attention module was designed, and sea clutter was not tested on its own. \\
+\hline
+
+4. Physics-guided trajectory prediction &
+Not started &
+Moved to the next phase. \\
+\hline
+
+5. Temporal consistency and COLREGS knowledge graph &
+Not started &
+Moved to the next phase. \\
+\hline
+
+6. Evaluation on real-world surveillance scenarios &
+Not met &
+Tested only on the MOS-Ship test set. \\
+\hline
+\end{tabular}
+
+\caption{Status of the research objectives}
+\label{tab:research_objectives_status}
+\end{table}
+\subsection{Limitations}
+
+\begin{itemize}
+    \item The fused models do not work well when the optical input is missing.
+    \item No RGB-only or SAR-only models were trained, so the gain of fusion over a single-input detector is not yet measured.
+    \item The official cloud tiles are too mild to test performance in bad weather.
+    \item The test set overlaps the training scenes, and the training recipes differ between models (YOLO26-OBB starts from DOTAv1~\cite{xia2018dota} weights.
+    \item FPS was measured on two different GPUs, and each setting was trained only once.
+    \item The trajectory part of the original plan has not been started.
+\end{itemize}
+
+We intend to address these limitations in our future work. We plan to start with modality dropout during training, so that each stream can detect on its own, and harder weather tests, where fusion should matter most. Overall, this phase gives us a fair baseline, a clear best model and a precise picture of where fusion still falls short.
+
+
+
+\section{Future Considerations}
+Although the current work focuses on preprocessing, training and initial comparative  analysis of multiple detection models, few areas and challenges remain to be explored, investigated and improved. The MOS Ship~\cite{you2026multi} annotations were used to train the models   where optical annotation training resulted in stronger performance. On the contrary, sar annotation training provided a comparatively unsatisfactory performance. Therefore, dedicated SAR-only and Optical-only models have not yet been explored for training and optimization. Moreover, cloud evaluation is limited to almost clean and no optical blackout conditions. Furthermore, small residual misalignment between the sar and the optical images still persists even after the current alignment procedure.\\
+
+In order to address the aforesaid challenges, the following improvements and directions are planned to strengthen the proposed framework. Future works will  focus on improving sar annotation based training performance. Separate SAR-only and Optical-only models will be explored to improve efficiency of the research work. The improvement will be further extended to  more challenging cloud and blackout conditions and an improved SAR-Optical image alignment will be ensured. Future direction of the work moves towards small vessel detection under sea clutter condition and trajectory re-constructions. Together, these improvement and enhancement focuses to boost robustness, accuracy and applicability for the real world maritime monitoring.
+\\
+
+In short, this phase worked as the baseline for RGB and SAR fusion for ship detection. The results suggest that adding aligned SAR though provided small improvements including small ship cases, models failed when the optical image was removed. Therefore, the next phase will be focused to improving SAR modality and tracking ships over time.

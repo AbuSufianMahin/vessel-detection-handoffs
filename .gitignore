@@ -1,0 +1,38 @@
+# LaTeX build output (latexmk writes everything to report/build/)
+report/build/
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.lot
+*.nav
+*.out
+*.run.xml
+*.snm
+*.synctex.gz
+*.synctex(busy)
+*.toc
+*.xdv
+
+# Participant data: never commit (see ethics commitments in CLAUDE.md)
+data/
+transcripts/
+recordings/
+*.wav
+*.mp3
+*.m4a
+*.aac
+*.ogg
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Personal Claude and editor settings
+.claude/settings.local.json
+*.swp

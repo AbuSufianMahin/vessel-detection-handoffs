@@ -1,0 +1,13 @@
+# Store text with LF line endings so Windows, Mac and Linux agree
+* text=auto eol=lf
+
+# Binary files: never touch line endings
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.eps binary
+*.zip binary
+*.skill binary
+*.docx binary
+*.xlsx binary
